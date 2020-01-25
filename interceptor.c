@@ -277,10 +277,13 @@ void my_exit_group(int status)
  */
 asmlinkage long interceptor(struct pt_regs reg) {
 
-
-
-
-
+	/*
+	if ((monitored == 1 && current->pid is in the list) || (monitored == 2 && current->pid is not in list)) {
+		// This has 7 args but it should only have 6????
+		log_message(current->pid, syscall, reg.eax, reg.ebx, reg.ecx, reg.edx, reg.esi, reg.edi, reg.ebp);
+	}
+	*/
+	// Call original syscall
 	return 0; // Just a placeholder, so it compiles with no warnings!
 }
 
