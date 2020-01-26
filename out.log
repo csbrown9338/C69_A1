@@ -3,20 +3,10 @@ make[1]: Entering directory `/usr/src/linux-source-2.6.32'
   CC [M]  /home/student/Assignment1/C69_A1/interceptor.o
 /home/student/Assignment1/C69_A1/interceptor.c: In function ‘my_syscall’:
 /home/student/Assignment1/C69_A1/interceptor.c:354: error: implicit declaration of function ‘acquire’
-/home/student/Assignment1/C69_A1/interceptor.c:360: error: implicit declaration of function ‘release’
-/home/student/Assignment1/C69_A1/interceptor.c:373: error: subscripted value is neither array nor pointer
-/home/student/Assignment1/C69_A1/interceptor.c:383: error: expected expression before ‘||’ token
-/home/student/Assignment1/C69_A1/interceptor.c:406: error: expected expression before ‘||’ token
-/home/student/Assignment1/C69_A1/interceptor.c: In function ‘init_function’:
-/home/student/Assignment1/C69_A1/interceptor.c:452: warning: passing argument 1 of ‘set_addr_rw’ makes integer from pointer without a cast
-/home/student/Assignment1/C69_A1/interceptor.c:24: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
-/home/student/Assignment1/C69_A1/interceptor.c:458: warning: passing argument 1 of ‘set_addr_ro’ makes integer from pointer without a cast
-/home/student/Assignment1/C69_A1/interceptor.c:34: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
-/home/student/Assignment1/C69_A1/interceptor.c: In function ‘exit_function’:
-/home/student/Assignment1/C69_A1/interceptor.c:476: warning: passing argument 1 of ‘set_addr_rw’ makes integer from pointer without a cast
-/home/student/Assignment1/C69_A1/interceptor.c:24: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
-/home/student/Assignment1/C69_A1/interceptor.c:482: warning: passing argument 1 of ‘set_addr_ro’ makes integer from pointer without a cast
-/home/student/Assignment1/C69_A1/interceptor.c:34: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
+/home/student/Assignment1/C69_A1/interceptor.c:362: error: implicit declaration of function ‘release’
+/home/student/Assignment1/C69_A1/interceptor.c:375: error: subscripted value is neither array nor pointer
+/home/student/Assignment1/C69_A1/interceptor.c:387: error: expected expression before ‘||’ token
+/home/student/Assignment1/C69_A1/interceptor.c:409: error: expected expression before ‘||’ token
 make[2]: *** [/home/student/Assignment1/C69_A1/interceptor.o] Error 1
 make[1]: *** [_module_/home/student/Assignment1/C69_A1] Error 2
 make[1]: Leaving directory `/usr/src/linux-source-2.6.32'
