@@ -2,8 +2,22 @@ make -C /lib/modules/`uname -r`/build M=`pwd`
 make[1]: Entering directory `/usr/src/linux-source-2.6.32'
   CC [M]  /home/student/Assignment1/C69_A1/interceptor.o
 /home/student/Assignment1/C69_A1/interceptor.c: In function ‘my_syscall’:
-/home/student/Assignment1/C69_A1/interceptor.c:354: error: implicit declaration of function ‘acquire’
-/home/student/Assignment1/C69_A1/interceptor.c:362: error: implicit declaration of function ‘release’
+/home/student/Assignment1/C69_A1/interceptor.c:354: error: incompatible type for argument 1 of ‘_spin_lock’
+include/linux/spinlock_api_smp.h:22: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:362: error: incompatible type for argument 1 of ‘__spin_unlock’
+include/linux/spinlock_api_smp.h:349: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:373: error: incompatible type for argument 1 of ‘_spin_lock’
+include/linux/spinlock_api_smp.h:22: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:382: error: incompatible type for argument 1 of ‘__spin_unlock’
+include/linux/spinlock_api_smp.h:349: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:397: error: incompatible type for argument 1 of ‘_spin_lock’
+include/linux/spinlock_api_smp.h:22: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:405: error: incompatible type for argument 1 of ‘__spin_unlock’
+include/linux/spinlock_api_smp.h:349: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:418: error: incompatible type for argument 1 of ‘_spin_lock’
+include/linux/spinlock_api_smp.h:22: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
+/home/student/Assignment1/C69_A1/interceptor.c:424: error: incompatible type for argument 1 of ‘__spin_unlock’
+include/linux/spinlock_api_smp.h:349: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
 make[2]: *** [/home/student/Assignment1/C69_A1/interceptor.o] Error 1
 make[1]: *** [_module_/home/student/Assignment1/C69_A1] Error 2
 make[1]: Leaving directory `/usr/src/linux-source-2.6.32'
