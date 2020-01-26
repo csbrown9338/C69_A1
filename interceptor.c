@@ -338,12 +338,41 @@ asmlinkage long interceptor(struct pt_regs reg) {
  */
 asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
+	int status = 0;
 
+	if (cmd == REQUEST_SYSCALL_INTERCEPT) {
+		// Check to make sure that syscall is not already intercepted
+		/* status = EBUSY;*/
+		// Otherwise change the state of the syscall in the sys_call_table
+		// Remember the spinlock
+		spin_lock(calltable_lock);
 
+		spin_unlock(calltable_lock);
+	}
 
+	else if (cmd == REQUEST_SYSCALL_RELEASE) {
+		spin_lock(calltable_lock);
+		
+		spin_unlock(calltable_lock);
+	}
 
+	else if (cmd == REQUEST_START_MONITORING) {
+		spin_lock(pidlist_lock);
+		
+		spin_unlock(pidlist_lock);
+	}
 
-	return 0;
+	else if (cmd == REQUEST_STOP_MONITORING) {
+		spin_lock(pidlist_lock);
+		
+		spin_unlock(pidlist_lock);
+	}
+
+	else {
+		status = EINVAL;
+	}
+
+	return status;
 }
 
 /**
