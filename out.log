@@ -1,19 +1,6 @@
 make -C /lib/modules/`uname -r`/build M=`pwd`
 make[1]: Entering directory `/usr/src/linux-source-2.6.32'
   CC [M]  /home/student/Assignment1/C69_A1/interceptor.o
-/home/student/Assignment1/C69_A1/interceptor.c: In function ‘interceptor’:
-/home/student/Assignment1/C69_A1/interceptor.c:280: error: ‘struct pt_regs’ has no member named ‘eax’
-/home/student/Assignment1/C69_A1/interceptor.c:280: error: ‘struct pt_regs’ has no member named ‘eax’
-/home/student/Assignment1/C69_A1/interceptor.c:281: error: ‘struct pt_regs’ has no member named ‘eax’
-/home/student/Assignment1/C69_A1/interceptor.c:281: error: ‘struct pt_regs’ has no member named ‘eax’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘eax’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘ebx’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘ecx’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘edx’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘esi’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘edi’
-/home/student/Assignment1/C69_A1/interceptor.c:283: error: ‘struct pt_regs’ has no member named ‘ebp’
-/home/student/Assignment1/C69_A1/interceptor.c:286: error: ‘struct pt_regs’ has no member named ‘eax’
 /home/student/Assignment1/C69_A1/interceptor.c: In function ‘my_syscall’:
 /home/student/Assignment1/C69_A1/interceptor.c:354: error: incompatible type for argument 1 of ‘_spin_lock’
 include/linux/spinlock_api_smp.h:22: note: expected ‘struct spinlock_t *’ but argument is of type ‘spinlock_t’
@@ -37,15 +24,11 @@ include/linux/spinlock_api_smp.h:349: note: expected ‘struct spinlock_t *’ b
 /home/student/Assignment1/C69_A1/interceptor.c: In function ‘init_function’:
 /home/student/Assignment1/C69_A1/interceptor.c:448: warning: passing argument 1 of ‘set_addr_rw’ makes integer from pointer without a cast
 /home/student/Assignment1/C69_A1/interceptor.c:24: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
-/home/student/Assignment1/C69_A1/interceptor.c:452: error: ‘NR__exit_group’ undeclared (first use in this function)
-/home/student/Assignment1/C69_A1/interceptor.c:452: error: (Each undeclared identifier is reported only once
-/home/student/Assignment1/C69_A1/interceptor.c:452: error: for each function it appears in.)
 /home/student/Assignment1/C69_A1/interceptor.c:454: warning: passing argument 1 of ‘set_addr_ro’ makes integer from pointer without a cast
 /home/student/Assignment1/C69_A1/interceptor.c:34: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
 /home/student/Assignment1/C69_A1/interceptor.c: In function ‘exit_function’:
 /home/student/Assignment1/C69_A1/interceptor.c:472: warning: passing argument 1 of ‘set_addr_rw’ makes integer from pointer without a cast
 /home/student/Assignment1/C69_A1/interceptor.c:24: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
-/home/student/Assignment1/C69_A1/interceptor.c:477: error: ‘NR__exit_group’ undeclared (first use in this function)
 /home/student/Assignment1/C69_A1/interceptor.c:478: warning: passing argument 1 of ‘set_addr_ro’ makes integer from pointer without a cast
 /home/student/Assignment1/C69_A1/interceptor.c:34: note: expected ‘long unsigned int’ but argument is of type ‘long int (*)(void)’
 make[2]: *** [/home/student/Assignment1/C69_A1/interceptor.o] Error 1
