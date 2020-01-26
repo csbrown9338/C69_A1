@@ -351,20 +351,29 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else if (cmd == REQUEST_SYSCALL_RELEASE) {
+		// Check to make sure that syscall is intercepted
+		/* status = EBUSY; */
+		// Otherwise change the state of the syscall in the sys_call_table
 		spin_lock(calltable_lock);
-		
+		// Also use destroy_list i think
 		spin_unlock(calltable_lock);
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
+		// Check to make sure that the pid is not already being monitored by the syscall
+		/* status = EBUSY */
+		// Otherwise add the pid into the pid lists
 		spin_lock(pidlist_lock);
-		
+		// There are 2 lists to add this into
 		spin_unlock(pidlist_lock);
 	}
 
 	else if (cmd == REQUEST_STOP_MONITORING) {
+		// Check to make sure that the pid is being monitored by the syscall
+		/* status = EBUSY */
+		// Otherwise delete the pid from the lists :)
 		spin_lock(pidlist_lock);
-		
+		// There are 2 lists to remove it from
 		spin_unlock(pidlist_lock);
 	}
 
