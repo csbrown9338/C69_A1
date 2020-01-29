@@ -344,34 +344,40 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check to make sure we are root
 		/* status = EPERM */
 		// Make sure that this is a valid syscall
-		if (syscall <= 0 || syscall > __NR_syscalls) status = EINVAL;
+		if (syscall <= 0 || syscall > __NR_syscalls) status = -EINVAL;
 		// Check to make sure that syscall is not already intercepted
-		/* status = EBUSY;*/
+		else if (mytable[syscall].monitored != 0) status = -EBUSY;
 		// Otherwise change the state of the syscall in the sys_call_table
 		// Remember the spinlock
-		spin_lock(calltable_lock);
-
-		spin_unlock(calltable_lock);
+		else {
+			spin_lock(calltable_lock);
+			mytable[syscall].monitored = 1;
+			spin_unlock(calltable_lock);
+		}
 	}
 
 	else if (cmd == REQUEST_SYSCALL_RELEASE) {
 		// Check to make sure we are root
 		/* status = EPERM */
 		// Check to make sure that syscall is intercepted and that it's a valid syscall
-		if (syscall <= 0 || syscall > __NR_syscalls) status = EINVAL; // CHECK IF INTERCEPTED
+		if (syscall <= 0 || syscall > __NR_syscalls || mytable[syscall].monitored == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
-		spin_lock(calltable_lock);
-		// Also use destroy_list i think
-		spin_unlock(calltable_lock);
+		else {
+			spin_lock(calltable_lock);
+			// Also use destroy_list i think
+			destroy_list[syscall];
+			spin_unlock(calltable_lock);
+		}
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
-		/* status = EBUSY */
+		if ((mytable[syscall].monitored == 1 && !(check_pid_monitored(syscall, pid))) ||
+		(mytable[syscall].monitored == 2 && check_pid_monitored(syscall, pid)) || pid == 0) status = -EBUSY;
 		// Also check to make sure this pid exists (or 0)
-		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = EINVAL;
+		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL;
 		// Otherwise add the pid into the pid lists
 		spin_lock(pidlist_lock);
 		// There are 2 lists to add this into
@@ -385,7 +391,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
-		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = EINVAL; // CHECK IF MONITORED
+		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL; // CHECK IF MONITORED
 		// Otherwise delete the pid from the lists :)
 		spin_lock(pidlist_lock);
 		// There are 2 lists to remove it from
@@ -394,7 +400,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else {
-		status = EINVAL;
+		status = -EINVAL;
 	}
 
 	return status;
