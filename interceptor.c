@@ -339,6 +339,7 @@ asmlinkage long interceptor(struct pt_regs reg) {
 asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 	int status = 0;
+	int isMonitored = 0;
 
 	if (cmd == REQUEST_SYSCALL_INTERCEPT) {
 		// Check to make sure we are root
@@ -371,23 +372,30 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
+		if (mytable[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
+		(mytable[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
-		if ((mytable[syscall].monitored == 1 && !(check_pid_monitored(syscall, pid))) ||
-		(mytable[syscall].monitored == 2 && check_pid_monitored(syscall, pid)) || pid == 0) status = -EBUSY;
+		if (isMonitored == 0 && pid != 0) status = -EBUSY;
 		// Also check to make sure this pid exists (or 0)
-		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL;
+		else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL;
 		// Otherwise add the pid into the pid lists
-		spin_lock(pidlist_lock);
-		// There are 2 lists to add this into
-		// If it's 0, then just change monitored = 2
-		// If there is no memory space left to add,
-		/* status = ENOMEM */
-		spin_unlock(pidlist_lock);
+		else {
+			spin_lock(pidlist_lock);
+			// There are 2 lists to add this into
+			// If it's 0, then just change monitored = 2
+			// If there is no memory space left to add,
+			/* status = ENOMEM */
+			if (mytable[syscall].monitored == 1) add_pid_sysc(pid, syscall);
+			else if (mytable[syscall].monitored == 2) del_pid_sysc(pid, syscall);
+			spin_unlock(pidlist_lock);
+		}
 	}
 
 	else if (cmd == REQUEST_STOP_MONITORING) {
+		if (mytable[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
+		(mytable[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
