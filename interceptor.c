@@ -347,12 +347,12 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Make sure that this is a valid syscall
 		if (syscall <= 0 || syscall > __NR_syscalls) status = -EINVAL;
 		// Check to make sure that syscall is not already intercepted
-		else if (mytable[syscall].monitored != 0) status = -EBUSY;
+		else if (table[syscall].monitored != 0) status = -EBUSY;
 		// Otherwise change the state of the syscall in the sys_call_table
 		// Remember the spinlock
 		else {
 			spin_lock(calltable_lock);
-			mytable[syscall].monitored = 1;
+			table[syscall].monitored = 1;
 			spin_unlock(calltable_lock);
 		}
 	}
@@ -361,7 +361,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check to make sure we are root
 		/* status = EPERM */
 		// Check to make sure that syscall is intercepted and that it's a valid syscall
-		if (syscall <= 0 || syscall > __NR_syscalls || mytable[syscall].monitored == 0) status = -EINVAL;
+		if (syscall <= 0 || syscall > __NR_syscalls || table[syscall].monitored == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
 		else {
 			spin_lock(calltable_lock);
@@ -372,8 +372,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
-		if (mytable[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
-		(mytable[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
+		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
+		(table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
@@ -387,16 +387,16 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If it's 0, then just change monitored = 2
 			// If there is no memory space left to add,
 			/* status = ENOMEM */
-			if (pid == 0) mytable[syscall].monitored = 2;
-			else if (mytable[syscall].monitored == 1) add_pid_sysc(pid, syscall);
-			else if (mytable[syscall].monitored == 2) del_pid_sysc(pid, syscall);
+			if (pid == 0) table[syscall].monitored = 2;
+			else if (table[syscall].monitored == 1) add_pid_sysc(pid, syscall);
+			else if (table[syscall].monitored == 2) del_pid_sysc(pid, syscall);
 			spin_unlock(pidlist_lock);
 		}
 	}
 
 	else if (cmd == REQUEST_STOP_MONITORING) {
-		if (mytable[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
-		(mytable[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
+		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
+		(table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
@@ -406,18 +406,15 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			spin_lock(pidlist_lock);
 			// There are 2 lists to remove it from
 			// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
-			if (pid == 0) mytable[syscall].monitored = 1;
-			else if (mytable[syscall].monitored == 1) del_pid_sysc(pid, syscall);
-			else if (mytable[syscall].monitored == 2) add_pid_sysc)pid, syscall);
+			if (pid == 0) table[syscall].monitored = 1;
+			else if (table[syscall].monitored == 1) del_pid_sysc(pid, syscall);
+			else if (table[syscall].monitored == 2) add_pid_sysc)pid, syscall);
 			spin_unlock(pidlist_lock);
-		}
-			
+		}	
 	}
-
 	else {
 		status = -EINVAL;
 	}
-
 	return status;
 }
 
