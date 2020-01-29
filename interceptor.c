@@ -377,7 +377,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
-		if (isMonitored == 0 && pid != 0) status = -EBUSY;
+		if (isMonitored == 1 && pid != 0) status = -EBUSY;
 		// Also check to make sure this pid exists (or 0)
 		else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL;
 		// Otherwise add the pid into the pid lists
@@ -387,7 +387,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If it's 0, then just change monitored = 2
 			// If there is no memory space left to add,
 			/* status = ENOMEM */
-			if (mytable[syscall].monitored == 1) add_pid_sysc(pid, syscall);
+			if (pid == 0) mytable[syscall].monitored = 2;
+			else if (mytable[syscall].monitored == 1) add_pid_sysc(pid, syscall);
 			else if (mytable[syscall].monitored == 2) del_pid_sysc(pid, syscall);
 			spin_unlock(pidlist_lock);
 		}
@@ -399,12 +400,18 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
-		if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL; // CHECK IF MONITORED
+		if ((pid_task(find_vpid(pid), PIDTYPE_PID) == NULL || isMonitored == 0) && pid != 0) status = -EINVAL;
 		// Otherwise delete the pid from the lists :)
-		spin_lock(pidlist_lock);
-		// There are 2 lists to remove it from
-		// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
-		spin_unlock(pidlist_lock);
+		else {
+			spin_lock(pidlist_lock);
+			// There are 2 lists to remove it from
+			// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
+			if (pid == 0) mytable[syscall].monitored = 1;
+			else if (mytable[syscall].monitored == 1) del_pid_sysc(pid, syscall);
+			else if (mytable[syscall].monitored == 2) add_pid_sysc)pid, syscall);
+			spin_unlock(pidlist_lock);
+		}
+			
 	}
 
 	else {
