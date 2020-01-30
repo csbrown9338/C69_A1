@@ -352,6 +352,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		else {
 			spin_lock(calltable_lock);
 			table[syscall].monitored = 1;
+			sys_call_table[syscall] = interceptor;
 			spin_unlock(calltable_lock);
 		}
 	}
@@ -366,6 +367,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			spin_lock(calltable_lock);
 			// Also use destroy_list i think
 			destroy_list[syscall];
+			// Replace the address in sys_call_table
 			spin_unlock(calltable_lock);
 		}
 	}
@@ -443,6 +445,8 @@ static int init_function(void) {
 	set_addr_rw(orig_custom_syscall);
 	// Something with interceptor
 	// Something with the custom exit group
+	orig_exit_group = sys_call_table[__NR__exit_group];
+	sys_call_table[__NR__exit_group] = my_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 	return 0;
@@ -464,6 +468,7 @@ static void exit_function(void)
 	set_addr_rw(orig_custom_syscall);
 	// Something with interceptor
 	// Something with the custom exit group
+	sys_call_table[__NR__exit_group] = orig_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 
