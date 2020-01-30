@@ -440,11 +440,9 @@ long (*orig_custom_syscall)(void);
  */
 static int init_function(void) {
 
+	set_addr_rw(orig_custom_syscall);
 
-
-
-
-
+	set_addr_ro(orig_custom_syscall);
 
 	return 0;
 }
@@ -462,9 +460,9 @@ static int init_function(void) {
 static void exit_function(void)
 {        
 
+	set_addr_rw(orig_custom_syscall);
 
-
-
+	set_addr_ro(orig_custom_syscall);
 
 
 }
