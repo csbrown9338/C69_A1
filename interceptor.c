@@ -351,6 +351,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Remember the spinlock
 		else {
 			spin_lock(calltable_lock);
+			table[syscall].f = sys_call_table[syscall];
 			table[syscall].monitored = 1;
 			sys_call_table[syscall] = interceptor;
 			spin_unlock(calltable_lock);
@@ -368,6 +369,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// Also use destroy_list i think
 			destroy_list[syscall];
 			// Replace the address in sys_call_table
+			sys_call_table[syscall] = table[syscall].f;
 			spin_unlock(calltable_lock);
 		}
 	}
@@ -468,6 +470,7 @@ static void exit_function(void)
 	set_addr_rw(orig_custom_syscall);
 	// Something with interceptor
 	// Something with the custom exit group
+	// Go through the bookkeeping table and destroy the lists 
 	sys_call_table[__NR__exit_group] = orig_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
