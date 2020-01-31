@@ -446,6 +446,7 @@ static int init_function(void) {
 
 	set_addr_rw(orig_custom_syscall);
 	// Something with interceptor
+	sys_call_table[0] = my_syscall;
 	// Something with the custom exit group
 	orig_exit_group = sys_call_table[__NR__exit_group];
 	sys_call_table[__NR__exit_group] = my_exit_group;
@@ -469,6 +470,7 @@ static void exit_function(void)
 
 	set_addr_rw(orig_custom_syscall);
 	// Something with interceptor
+	sys_call_table[0] = orig_custom_syscall;
 	// Something with the custom exit group
 	// Go through the bookkeeping table and destroy the lists 
 	sys_call_table[__NR__exit_group] = orig_exit_group;
