@@ -372,7 +372,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		else {
 			acquire(calltable_lock);
 			// Also use destroy_list i think
-			destroy_list[table[syscall].my_list];
+			destroy_list(syscall);
 			// Make the table writeable
 			set_addr_rw((unsigned long)sys_call_table[syscall]);
 			// Replace the address in sys_call_table
@@ -384,8 +384,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
-		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid) == 1) ||
-		(table[syscall].monitored == 2 && check_pid_monitored(syscall, pid) == 0) isMonitored = 1;
+		if ((table[syscall].monitored == 1 && check_pid_monitored(syscall, pid) == 1) ||
+		(table[syscall].monitored == 2 && check_pid_monitored(syscall, pid) == 0)) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
@@ -407,8 +407,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 	}
 
 	else if (cmd == REQUEST_STOP_MONITORING) {
-		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid) == 1) ||
-		(table[syscall].monitored == 2 && check_pid_monitored(syscall, pid) == 0) isMonitored = 1;
+		if ((table[syscall].monitored == 1 && check_pid_monitored(syscall, pid) == 1) ||
+		(table[syscall].monitored == 2 && check_pid_monitored(syscall, pid) == 0)) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
