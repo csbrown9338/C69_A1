@@ -345,7 +345,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check to make sure we are root
 		/* status = EPERM */
 		// Make sure that this is a valid syscall
-		if (syscall <= 0 || syscall > __NR_syscalls) status = -EINVAL;
+		if (syscall <= 0 || syscall > NR_syscalls) status = -EINVAL;
 		// Check to make sure that syscall is not already intercepted
 		else if (table[syscall].monitored != 0) status = -EBUSY;
 		// Otherwise change the state of the syscall in the sys_call_table
@@ -363,7 +363,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Check to make sure we are root
 		/* status = EPERM */
 		// Check to make sure that syscall is intercepted and that it's a valid syscall
-		if (syscall <= 0 || syscall > __NR_syscalls || table[syscall].monitored == 0) status = -EINVAL;
+		if (syscall <= 0 || syscall > NR_syscalls || table[syscall].monitored == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
 		else {
 			spin_lock(calltable_lock);
@@ -412,7 +412,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
 			if (pid == 0) table[syscall].monitored = 1;
 			else if (table[syscall].monitored == 1) del_pid_sysc(pid, syscall);
-			else if (table[syscall].monitored == 2) add_pid_sysc)pid, syscall);
+			else if (table[syscall].monitored == 2) add_pid_sysc(pid, syscall);
 			spin_unlock(pidlist_lock);
 		}	
 	}
@@ -449,8 +449,8 @@ static int init_function(void) {
 	// Something with interceptor
 	sys_call_table[0] = my_syscall;
 	// Something with the custom exit group
-	orig_exit_group = sys_call_table[__NR__exit_group];
-	sys_call_table[__NR__exit_group] = my_exit_group;
+	orig_exit_group = sys_call_table[NR__exit_group];
+	sys_call_table[NR__exit_group] = my_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 	return 0;
@@ -474,7 +474,7 @@ static void exit_function(void)
 	sys_call_table[0] = orig_custom_syscall;
 	// Something with the custom exit group
 	// Go through the bookkeeping table and destroy the lists 
-	sys_call_table[__NR__exit_group] = orig_exit_group;
+	sys_call_table[NR__exit_group] = orig_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 
