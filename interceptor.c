@@ -355,8 +355,10 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			table[syscall].f = sys_call_table[syscall];
 			table[syscall].monitored = 1;
 			// Make the thing writeable
+			set_addr_rw((unsigned long)sys_call_table[syscall]);
 			sys_call_table[syscall] = interceptor;
 			// Make it read only
+			set_addr_ro((unsigned long)sys_call_table[syscall]);
 			release(calltable_lock);
 		}
 	}
@@ -370,18 +372,19 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		else {
 			acquire(calltable_lock);
 			// Also use destroy_list i think
-			destroy_list[syscall];
+			destroy_list[table[syscall].my_list];
 			// Make the table writeable
+			set_addr_rw((unsigned long)sys_call_table[syscall]);
 			// Replace the address in sys_call_table
 			sys_call_table[syscall] = table[syscall].f;
 			// Make it read only
+			set_addr_ro((unsigned long)sys_call_table[syscall]);
 			release(calltable_lock);
 		}
 	}
 
 	else if (cmd == REQUEST_START_MONITORING) {
-		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
-		(table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
+		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || (table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is not already being monitored by the syscall
@@ -396,15 +399,14 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If there is no memory space left to add,
 			/* status = ENOMEM */
 			if (pid == 0) table[syscall].monitored = 2;
-			else if (table[syscall].monitored == 1) add_pid_sysc(pid, syscall);
+			else if (table[syscall].monitored == 1) status = add_pid_sysc(pid, syscall);
 			else if (table[syscall].monitored == 2) del_pid_sysc(pid, syscall);
 			release(pidlist_lock);
 		}
 	}
 
 	else if (cmd == REQUEST_STOP_MONITORING) {
-		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || 
-		(table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
+		if (table[syscall].monitored == 1 && check_pid_monitored(syscall, pid)) || (table[syscall].monitored == 2 && !(check_pid_monitored(syscall, pid))) isMonitored = 1;
 		// Check permissions????
 		/* status = EPERM */
 		// Check to make sure that the pid is being monitored by the syscall and that this pid exists (or 0)
@@ -416,7 +418,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
 			if (pid == 0) table[syscall].monitored = 1;
 			else if (table[syscall].monitored == 1) del_pid_sysc(pid, syscall);
-			else if (table[syscall].monitored == 2) add_pid_sysc(pid, syscall);
+			else if (table[syscall].monitored == 2) status = add_pid_sysc(pid, syscall);
 			release(pidlist_lock);
 		}	
 	}
@@ -449,13 +451,13 @@ long (*orig_custom_syscall)(void);
  */
 static int init_function(void) {
 
-	set_addr_rw(orig_custom_syscall);
+	set_addr_rw((unsigned long)orig_custom_syscall);
 	// Something with interceptor
 	sys_call_table[0] = my_syscall;
 	// Something with the custom exit group
 	orig_exit_group = sys_call_table[__NR_exit_group];
 	sys_call_table[__NR_exit_group] = my_exit_group;
-	set_addr_ro(orig_custom_syscall);
+	set_addr_ro((unsigned long)orig_custom_syscall);
 
 	return 0;
 }
@@ -473,13 +475,13 @@ static int init_function(void) {
 static void exit_function(void)
 {        
 
-	set_addr_rw(orig_custom_syscall);
+	set_addr_rw((unsigned long)orig_custom_syscall);
 	// Something with interceptor
 	sys_call_table[0] = orig_custom_syscall;
 	// Something with the custom exit group
 	// Go through the bookkeeping table and destroy the lists 
 	sys_call_table[__NR_exit_group] = orig_exit_group;
-	set_addr_ro(orig_custom_syscall);
+	set_addr_ro((unsigned long)orig_custom_syscall);
 
 
 }
