@@ -351,11 +351,13 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Otherwise change the state of the syscall in the sys_call_table
 		// Remember the spinlock
 		else {
-			spin_lock(calltable_lock);
+			acquire(calltable_lock);
 			table[syscall].f = sys_call_table[syscall];
 			table[syscall].monitored = 1;
+			// Make the thing writeable
 			sys_call_table[syscall] = interceptor;
-			spin_unlock(calltable_lock);
+			// Make it read only
+			release(calltable_lock);
 		}
 	}
 
@@ -366,12 +368,14 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		if (syscall <= 0 || syscall > NR_syscalls || table[syscall].monitored == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
 		else {
-			spin_lock(calltable_lock);
+			acquire(calltable_lock);
 			// Also use destroy_list i think
 			destroy_list[syscall];
+			// Make the table writeable
 			// Replace the address in sys_call_table
 			sys_call_table[syscall] = table[syscall].f;
-			spin_unlock(calltable_lock);
+			// Make it read only
+			release(calltable_lock);
 		}
 	}
 
@@ -386,7 +390,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		else if (pid_task(find_vpid(pid), PIDTYPE_PID) == NULL && pid != 0) status = -EINVAL;
 		// Otherwise add the pid into the pid lists
 		else {
-			spin_lock(pidlist_lock);
+			acquire(pidlist_lock);
 			// There are 2 lists to add this into
 			// If it's 0, then just change monitored = 2
 			// If there is no memory space left to add,
@@ -394,7 +398,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			if (pid == 0) table[syscall].monitored = 2;
 			else if (table[syscall].monitored == 1) add_pid_sysc(pid, syscall);
 			else if (table[syscall].monitored == 2) del_pid_sysc(pid, syscall);
-			spin_unlock(pidlist_lock);
+			release(pidlist_lock);
 		}
 	}
 
@@ -407,13 +411,13 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		if ((pid_task(find_vpid(pid), PIDTYPE_PID) == NULL || isMonitored == 0) && pid != 0) status = -EINVAL;
 		// Otherwise delete the pid from the lists :)
 		else {
-			spin_lock(pidlist_lock);
+			acquire(pidlist_lock);
 			// There are 2 lists to remove it from
 			// If it's 0, just change to monitored = 0 or 1??? and empty the list if anything
 			if (pid == 0) table[syscall].monitored = 1;
 			else if (table[syscall].monitored == 1) del_pid_sysc(pid, syscall);
 			else if (table[syscall].monitored == 2) add_pid_sysc(pid, syscall);
-			spin_unlock(pidlist_lock);
+			release(pidlist_lock);
 		}	
 	}
 	else {
