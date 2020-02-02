@@ -277,13 +277,13 @@ void my_exit_group(int status)
 asmlinkage long interceptor(struct pt_regs reg) {
 
 
-	if ((table[reg.eax].monitored == 1 && check_pid_monitored(reg.eax, current->pid)) == 1 ||
-	(table[reg.eax].monitored == 2 && check_pid_monitored(reg.eax, current->pid) == 0)) {
+	if ((table[reg.ax].monitored == 1 && check_pid_monitored(reg.ax, current->pid)) == 1 ||
+	(table[reg.ax].monitored == 2 && check_pid_monitored(reg.ax, current->pid) == 0)) {
 		// This has 7 args but it should only have 6????
-		log_message(current->pid, reg.eax, reg.ebx, reg.ecx, reg.edx, reg.esi, reg.edi, reg.ebp);
+		log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 	}
 	// Call original syscall
-	table[reg.eax].f(reg);
+	table[reg.ax].f(reg);
 	return 0; // Just a placeholder, so it compiles with no warnings!
 }
 
@@ -449,8 +449,8 @@ static int init_function(void) {
 	// Something with interceptor
 	sys_call_table[0] = my_syscall;
 	// Something with the custom exit group
-	orig_exit_group = sys_call_table[NR__exit_group];
-	sys_call_table[NR__exit_group] = my_exit_group;
+	orig_exit_group = sys_call_table[__NR_exit_group];
+	sys_call_table[__NR_exit_group] = my_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 	return 0;
@@ -474,7 +474,7 @@ static void exit_function(void)
 	sys_call_table[0] = orig_custom_syscall;
 	// Something with the custom exit group
 	// Go through the bookkeeping table and destroy the lists 
-	sys_call_table[NR__exit_group] = orig_exit_group;
+	sys_call_table[__NR_exit_group] = orig_exit_group;
 	set_addr_ro(orig_custom_syscall);
 
 
