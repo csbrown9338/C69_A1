@@ -283,7 +283,7 @@ asmlinkage long interceptor(struct pt_regs reg) {
 	}
 	// Call original syscall
 	
-	return table[reg.ax].f(reg);; // Just a placeholder, so it compiles with no warnings!
+	return table[reg.ax].f(reg); // Just a placeholder, so it compiles with no warnings!
 }
 
 /**
@@ -492,7 +492,7 @@ static void exit_function(void)
 
 	set_addr_rw((unsigned long)orig_custom_syscall);
 	// Something with interceptor
-	sys_call_table[0] = orig_custom_syscall;
+	sys_call_table[MY_CUSTOM_SYSCALL] = orig_custom_syscall;
 	// Something with the custom exit group
 	// Go through the bookkeeping table and destroy the lists 
 	sys_call_table[__NR_exit_group] = orig_exit_group;
