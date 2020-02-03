@@ -456,7 +456,7 @@ static int init_function(void) {
 
 	int sysc;
 	for (sysc = 0; sysc < NR_syscalls; sysc++) {
-		INIT_LIST_HEAD(table[sysc].my_list);
+		INIT_LIST_HEAD(&table[sysc].my_list);
 		table[sysc].f = sys_call_table[sysc];
 		table[sysc].monitored = 0;
 		table[sysc].intercepted = 0;
