@@ -342,31 +342,31 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 	if (cmd == REQUEST_SYSCALL_INTERCEPT) {
 		// Check to make sure we are root
-		/* status = EPERM */
+		if (current_uid != 0) status = -EPERM;
 		// Make sure that this is a valid syscall
-		if (syscall <= 0 || syscall > NR_syscalls) status = -EINVAL;
+		else if (syscall <= 0 || syscall > NR_syscalls) status = -EINVAL;
 		// Check to make sure that syscall is not already intercepted
-		else if (table[syscall].monitored != 0) status = -EBUSY;
+		else if (table[syscall].intercepted != 0) status = -EBUSY;
 		// Otherwise change the state of the syscall in the sys_call_table
 		// Remember the spinlock
 		else {
 			spin_lock(&calltable_lock);
-			table[syscall].monitored = 1;
 			table[syscall].intercepted = 1;
+			table[syscall].monitored = 1;
 			// Make the thing writeable
-			set_addr_rw((unsigned long)sys_call_table[syscall]);
+			set_addr_rw((unsigned long)sys_call_table);
 			sys_call_table[syscall] = interceptor;
 			// Make it read only
-			set_addr_ro((unsigned long)sys_call_table[syscall]);
+			set_addr_ro((unsigned long)sys_call_table);
 			spin_unlock(&calltable_lock);
 		}
 	}
 
 	else if (cmd == REQUEST_SYSCALL_RELEASE) {
 		// Check to make sure we are root
-		/* status = EPERM */
+		if (current_uid != 0) status = -EPERM;
 		// Check to make sure that syscall is intercepted and that it's a valid syscall
-		if (syscall <= 0 || syscall > NR_syscalls || table[syscall].monitored == 0) status = -EINVAL;
+		else if (syscall <= 0 || syscall > NR_syscalls || table[syscall].intercepted == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
 		else {
 			spin_lock(&calltable_lock);
@@ -375,11 +375,11 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// Also use destroy_list i think
 			destroy_list(syscall);
 			// Make the table writeable
-			set_addr_rw((unsigned long)sys_call_table[syscall]);
+			set_addr_rw((unsigned long)sys_call_table);
 			// Replace the address in sys_call_table
 			sys_call_table[syscall] = table[syscall].f;
 			// Make it read only
-			set_addr_ro((unsigned long)sys_call_table[syscall]);
+			set_addr_ro((unsigned long)sys_call_table);
 			spin_unlock(&calltable_lock);
 		}
 	}
@@ -388,7 +388,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		if ((table[syscall].monitored == 1 && check_pid_monitored(syscall, pid) == 1) ||
 		(table[syscall].monitored == 2 && check_pid_monitored(syscall, pid) == 0)) isMonitored = 1;
 		// Check permissions????
-		/* status = EPERM */
+		if ((check_pid_from_list(pid, current->pid) != 0) || current_uid() != 0) status = -EPERM;
 		// Check to make sure that the pid is not already being monitored by the syscall
 		if (isMonitored == 1 && pid != 0) status = -EBUSY;
 		// Also check to make sure this pid exists (or 0)
@@ -400,7 +400,10 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 			// If it's 0, then just change monitored = 2
 			// If there is no memory space left to add,
 			/* status = ENOMEM */
-			if (pid == 0) table[syscall].monitored = 2;
+			if (pid == 0) {
+				table[syscall].monitored = 2;
+				destroy_list(syscall);
+			}
 			else if (table[syscall].monitored == 1) status = add_pid_sysc(pid, syscall);
 			else if (table[syscall].monitored == 2) del_pid_sysc(pid, syscall);
 			spin_unlock(&pidlist_lock);
