@@ -342,7 +342,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 	if (cmd == REQUEST_SYSCALL_INTERCEPT) {
 		// Check to make sure we are root
-		if (current_uid != 0) status = -EPERM;
+		if (current_uid() != 0) status = -EPERM;
 		// Make sure that this is a valid syscall
 		else if (syscall <= 0 || syscall > NR_syscalls) status = -EINVAL;
 		// Check to make sure that syscall is not already intercepted
@@ -364,7 +364,7 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 
 	else if (cmd == REQUEST_SYSCALL_RELEASE) {
 		// Check to make sure we are root
-		if (current_uid != 0) status = -EPERM;
+		if (current_uid() != 0) status = -EPERM;
 		// Check to make sure that syscall is intercepted and that it's a valid syscall
 		else if (syscall <= 0 || syscall > NR_syscalls || table[syscall].intercepted == 0) status = -EINVAL;
 		// Otherwise change the state of the syscall in the sys_call_table
