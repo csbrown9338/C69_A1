@@ -279,7 +279,6 @@ asmlinkage long interceptor(struct pt_regs reg) {
 
 	if ((table[reg.ax].monitored == 1 && check_pid_monitored(reg.ax, current->pid)) == 1 ||
 	(table[reg.ax].monitored == 2 && check_pid_monitored(reg.ax, current->pid) == 0)) {
-		// This has 7 args but it should only have 6????
 		log_message(current->pid, reg.ax, reg.bx, reg.cx, reg.dx, reg.si, reg.di, reg.bp);
 	}
 	// Call original syscall
@@ -352,8 +351,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Remember the spinlock
 		else {
 			spin_lock(&calltable_lock);
-			table[syscall].f = sys_call_table[syscall];
 			table[syscall].monitored = 1;
+			table[syscall].intercepted = 1;
 			// Make the thing writeable
 			set_addr_rw((unsigned long)sys_call_table[syscall]);
 			sys_call_table[syscall] = interceptor;
@@ -371,6 +370,8 @@ asmlinkage long my_syscall(int cmd, int syscall, int pid) {
 		// Otherwise change the state of the syscall in the sys_call_table
 		else {
 			spin_lock(&calltable_lock);
+			table[syscall].monitored = 0;
+			table[syscall].intercepted = 0;
 			// Also use destroy_list i think
 			destroy_list(syscall);
 			// Make the table writeable
@@ -453,13 +454,22 @@ long (*orig_custom_syscall)(void);
  */
 static int init_function(void) {
 
-	set_addr_rw((unsigned long)orig_custom_syscall);
-	// Something with interceptor
-	sys_call_table[0] = my_syscall;
-	// Something with the custom exit group
+	int sysc;
+	for (sysc = 0; sysc < NR_syscalls; sysc++) {
+		INIT_LIST_HEAD(table[sysc].my_list);
+		table[sysc].f = sys_call_table[sysc];
+		table[sysc].monitored = 0;
+		table[sysc].intercepted = 0;
+	}
+
+	orig_custom_syscall = sys_call_table[MY_CUSTOM_SYSCALL];
 	orig_exit_group = sys_call_table[__NR_exit_group];
+	set_addr_rw((unsigned long)sys_call_table);
+	// Something with interceptor
+	sys_call_table[MY_CUSTOM_SYSCALL] = my_syscall;
+	// Something with the custom exit group
 	sys_call_table[__NR_exit_group] = my_exit_group;
-	set_addr_ro((unsigned long)orig_custom_syscall);
+	set_addr_ro((unsigned long)sys_call_table);
 
 	return 0;
 }
